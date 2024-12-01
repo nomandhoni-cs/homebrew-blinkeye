@@ -2,8 +2,8 @@ cask "blinkeye" do
   arch arm: "aarch64", intel: "x64"
 
   version "2.3.0"
-  sha256 arm:   "9f595394c745339a8ed95b984f5728e78f6e543d2a244b821b250dad6fdd0d3b",
-         intel: "9f595394c745339a8ed95b984f5728e78f6e543d2a244b821b250dad6fdd0d3b"
+  sha256 arm:   "15893ee25a4f01bac44eda296e6ed16e41964b84a69d88d2581a446b6f66d8aa",
+         intel: "15893ee25a4f01bac44eda296e6ed16e41964b84a69d88d2581a446b6f66d8aa"
 
   url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_#{arch}.app.tar.gz",
       verified: "github.com/nomandhoni-cs/blink-eye/"
