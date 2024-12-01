@@ -29,14 +29,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Homebrew and ffmpeg
+      - name: Install Homebrew
         run: |
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
           echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
           eval "$(/opt/homebrew/bin/brew shellenv)"
           brew update
-          brew install ffmpeg
 
       - name: Take Screenshots Every Second
         run: |
@@ -47,11 +46,6 @@ jobs:
             screencapture -x /tmp/screenshots/screenshot_$SECONDS.png
             sleep 1
           done
-
-      - name: Create Video from Screenshots
-        run: |
-          echo "Creating video from screenshots..."
-          ffmpeg -framerate 30 -i /tmp/screenshots/screenshot_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p /tmp/screen_record.mp4
 
       - name: Tap the Homebrew repository
         run: |
@@ -103,9 +97,9 @@ jobs:
             echo "Blink Eye uninstallation failed!" && exit 1
           fi
 
-      - name: Upload Screen Recording
+      - name: Upload Screenshots
         uses: actions/upload-artifact@v4
         with:
-          name: BlinkEyeScreenRecording
-          path: /tmp/screen_record.mp4
+          name: BlinkEyeScreenshots
+          path: /tmp/screenshots/*.png
           retention-days: 7
