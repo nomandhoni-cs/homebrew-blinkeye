@@ -25,6 +25,16 @@ jobs:
           URL_ARM=$(jq -r '.platforms["darwin-aarch64"].url' latest.json)
           URL_INTEL=$(jq -r '.platforms["darwin-x86_64"].url' latest.json)
 
+          echo "VERSION=$VERSION"
+          echo "URL_ARM=$URL_ARM"
+          echo "URL_INTEL=$URL_INTEL"
+
+          # Ensure the URLs are valid
+          if [[ -z "$URL_ARM" || -z "$URL_INTEL" ]]; then
+            echo "Error: One or more URLs are empty"
+            exit 1
+          fi
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
           echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
@@ -32,6 +42,7 @@ jobs:
       - name: Calculate SHA256 Checksums
         id: sha256
         run: |
+          # Fetch the files only if the URLs are valid
           curl -L -o BlinkEye_aarch64.tar.gz "$URL_ARM"
           curl -L -o BlinkEye_x64.tar.gz "$URL_INTEL"
 
