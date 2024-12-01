@@ -52,24 +52,34 @@ jobs:
           else
             echo "Blink Eye installation failed!" && exit 1
           fi
+      - name: Debug Installation
+        run: |
+          echo "Checking /Applications directory"
+          ls -la /Applications
+          echo "Checking $HOME/Applications directory"
+          ls -la "$HOME/Applications"
 
       - name: Test App Architecture
-        continue-on-error: true
         run: |
-          # Ensure the app binary exists
-          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" ]; then
-            echo "Blink Eye binary not found!" && exit 1
+          # Check if the app is installed in /Applications or ~/Applications
+          if [ -f "/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" ]; then
+            APP_BINARY="/Applications/Blink Eye.app/Contents/MacOS/Blink Eye"
+          elif [ -f "$HOME/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" ]; then
+            APP_BINARY="$HOME/Applications/Blink Eye.app/Contents/MacOS/Blink Eye"
+          else
+            echo "Blink Eye binary not found in both /Applications and ~/Applications!" && exit 1
           fi
-
+      
           # Check the architecture of the app binary
-          ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" | awk '{print $NF}')
+          ARCH=$(file "$APP_BINARY" | awk '{print $NF}')
           echo "Detected architecture: $ARCH"
-
+      
           if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
             echo "Architecture test failed! Detected: $ARCH, Expected: ${{ matrix.architecture }}" && exit 1
           else
             echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
           fi
+
 
       - name: Uninstall Blink Eye Cask
         run: |
