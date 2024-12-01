@@ -18,7 +18,13 @@ jobs:
         id: fetch-latest
         run: |
           # Fetch the latest JSON file from the release
-          curl -s https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json -o latest.json
+          curl -s -o latest.json https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json
+
+          # Verify if the file was fetched successfully
+          if [ ! -s latest.json ]; then
+            echo "Error: latest.json file is empty or not fetched properly"
+            exit 1
+          fi
 
           # Log the raw content of the latest.json to verify its structure
           echo "Raw JSON content:"
