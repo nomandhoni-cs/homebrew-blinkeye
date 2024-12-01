@@ -1,0 +1,72 @@
+name: Blink Eye Final Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release"
+        required: true
+        default: "release"
+
+jobs:
+  build-and-test:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"
+            architecture: "arm64" # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            architecture: "x86_64" # Intel
+            args: "--target x86_64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+          brew update
+
+      - name: Tap the Homebrew repository
+        run: |
+          brew tap nomandhoni-cs/blinkeye https://github.com/nomandhoni-cs/homebrew-blinkeye
+
+      - name: Install Blink Eye Cask
+        run: |
+          brew install --cask blinkeye
+
+      - name: Verify Installation
+        run: |
+          if [ -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye installed successfully."
+          else
+            echo "Blink Eye installation failed!" && exit 1
+          fi
+
+      - name: Test App Architecture
+        run: |
+          file /Applications/Blink\ Eye.app/Contents/MacOS/Blink\ Eye | grep ${{ matrix.architecture }} || {
+            echo "Architecture test failed! Expected: ${{ matrix.architecture }}" && exit 1
+          }
+
+      - name: Uninstall Blink Eye Cask
+        run: |
+          brew uninstall --cask blinkeye
+
+      - name: Verify Uninstallation
+        run: |
+          if [ ! -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye uninstalled successfully."
+          else
+            echo "Blink Eye uninstallation failed!" && exit 1
+          fi
