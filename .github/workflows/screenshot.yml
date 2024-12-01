@@ -70,6 +70,13 @@ jobs:
         with:
           name: BlinkEyeScreenshot
           path: /tmp/blinkeye_screenshot.png
+          
+      - name: Print Screenshot Artifact Link
+        run: |
+          echo "Screenshot artifact uploaded!"
+          echo "You can view and download the artifact from the Actions page:"
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
 
       - name: Test App Architecture
         run: |
