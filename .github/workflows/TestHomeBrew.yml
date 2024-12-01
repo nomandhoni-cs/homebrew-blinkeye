@@ -39,7 +39,7 @@ jobs:
 
       - name: Tap the Homebrew repository
         run: |
-          brew tap nomandhoni-cs/blinkeye https://github.com/nomandhoni-cs/homebrew-blinkeye
+          brew tap nomandhoni-cs/blinkeye
 
       - name: Install Blink Eye Cask
         run: |
