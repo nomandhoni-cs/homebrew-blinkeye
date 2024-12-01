@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest"   # For Apple Silicon (ARM64)
+          - platform: "macos-11"   # For Apple Silicon (ARM64)
             architecture: "arm64"  # Apple Silicon
             args: "--target aarch64-apple-darwin"
           - platform: "macos-latest"  # For Intel (x86_64)
@@ -25,7 +25,20 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      # Add the steps for building and testing here, using `args` and architecture info if needed.
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log Device Architecture
+        run: |
+          DEVICE_ARCH=$(uname -m)
+          echo "Detected device architecture: $DEVICE_ARCH"
+          if [[ "$DEVICE_ARCH" == "arm64" ]]; then
+            echo "This is an Apple Silicon device (ARM64)."
+          elif [[ "$DEVICE_ARCH" == "x86_64" ]]; then
+            echo "This is an Intel-based device (x86_64)."
+          else
+            echo "Unknown architecture detected!"
+          fi
 
       - name: Checkout repository
         uses: actions/checkout@v3
