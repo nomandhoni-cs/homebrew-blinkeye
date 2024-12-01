@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Blink Eye Cask
         run: |
-          brew install --cask blinkeye
+          brew tap nomandhoni-cs/blinkeye && brew install --cask blinkeye
 
       - name: Set macOS to Dark Mode
         run: |
