@@ -38,12 +38,20 @@ jobs:
           brew update
           brew install ffmpeg
 
-      - name: Start Screen Recording
+      - name: Take Screenshots Every Second
         run: |
-          echo "Starting screen recording..."
-          ffmpeg -video_size 1920x1080 -framerate 30 -f avfoundation -i "1:0" -y /tmp/screen_record.mp4 &
-          echo $! > /tmp/ffmpeg_pid
-          sleep 5  # Give ffmpeg time to initialize
+          mkdir -p /tmp/screenshots
+          echo "Starting to take screenshots every second..."
+          SECONDS=0
+          while [ $SECONDS -lt 60 ]; do  # Capture for 60 seconds (adjust duration as needed)
+            screencapture -x /tmp/screenshots/screenshot_$SECONDS.png
+            sleep 1
+          done
+
+      - name: Create Video from Screenshots
+        run: |
+          echo "Creating video from screenshots..."
+          ffmpeg -framerate 30 -i /tmp/screenshots/screenshot_%d.png -c:v libx264 -r 30 -pix_fmt yuv420p /tmp/screen_record.mp4
 
       - name: Tap the Homebrew repository
         run: |
@@ -94,12 +102,6 @@ jobs:
           else
             echo "Blink Eye uninstallation failed!" && exit 1
           fi
-
-      - name: Stop Screen Recording
-        run: |
-          echo "Stopping screen recording..."
-          kill -INT $(cat /tmp/ffmpeg_pid)
-          sleep 2  # Give ffmpeg time to finalize the video
 
       - name: Upload Screen Recording
         uses: actions/upload-artifact@v4
