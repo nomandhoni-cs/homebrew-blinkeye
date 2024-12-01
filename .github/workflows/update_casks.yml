@@ -2,9 +2,8 @@ name: Update Blink Eye Cask
 
 on:
   schedule:
-    # Runs 4 times a day
     - cron: "0 0,6,12,18 * * *"
-  workflow_dispatch: # Allows manual execution
+  workflow_dispatch:
 
 jobs:
   update-cask:
@@ -17,10 +16,10 @@ jobs:
       - name: Fetch Latest JSON
         id: fetch-latest
         run: |
-          # Fetch the latest JSON file from the release
+          # Fetch the latest JSON file
           curl -s -o latest.json https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json
 
-          # Verify if the file was fetched successfully
+          # Check if the file is downloaded correctly
           if [ ! -s latest.json ]; then
             echo "Error: latest.json file is empty or not fetched properly"
             exit 1
@@ -83,10 +82,7 @@ jobs:
           sed -i "s/^  version \".*\"/  version \"$VERSION\"/" Casks/blinkeye.rb
           sed -i "s/^  sha256 arm:   \".*\"/  sha256 arm:   \"$SHA256_ARM\"/" Casks/blinkeye.rb
           sed -i "s/^         intel: \".*\"/         intel: \"$SHA256_INTEL\"/" Casks/blinkeye.rb
-
-          # Update the URL with the correct version and architecture
-          sed -i "s|^  url .*|  url \"$URL_ARM\",|" Casks/blinkeye.rb
-          sed -i "s|^    #.*$|  # Updated automatically via GitHub Actions|g" Casks/blinkeye.rb
+          sed -i "s|^  url .*|  url \"https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_#{arch}.app.tar.gz\",|" Casks/blinkeye.rb
 
       - name: Commit and Push Changes
         env:
