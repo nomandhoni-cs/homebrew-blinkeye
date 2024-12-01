@@ -13,11 +13,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Fetch Latest JSON
+      - name: Fetch Latest JSON with wget
         id: fetch-latest
         run: |
-          # Fetch the latest JSON file
-          curl -s -o latest.json https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json
+          # Fetch the latest JSON file using wget (handles redirects)
+          wget -q https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json -O latest.json
 
           # Check if the file is downloaded correctly
           if [ ! -s latest.json ]; then
