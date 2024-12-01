@@ -44,6 +44,7 @@ jobs:
       - name: Install Blink Eye Cask
         run: |
           brew install --cask blinkeye
+          screencapture -x /tmp/screenshot_install.png  # Take screenshot of installation process
 
       - name: Verify Installation
         run: |
@@ -52,31 +53,19 @@ jobs:
           else
             echo "Blink Eye installation failed!" && exit 1
           fi
+          screencapture -x /tmp/screenshot_verify_install.png  # Screenshot after verification
+
+      - name: Launch Blink Eye App
+        run: |
+          open "/Applications/Blink Eye.app"
+          sleep 5  # Give the app time to load
+          screencapture -x /tmp/screenshot_launch.png  # Screenshot of the launched app
 
       - name: Debug App Contents
         run: |
           echo "Checking Blink Eye.app contents:"
           ls -R "/Applications/Blink Eye.app"
-
-      - name: Take Screenshot
-        run: |
-          open "/Applications/Blink Eye.app"
-          sleep 5  # Give the app time to load
-          screencapture -x /tmp/blinkeye_screenshot.png
-          echo "Screenshot saved to /tmp/blinkeye_screenshot.png"
-
-      - name: Upload Screenshot as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: BlinkEyeScreenshot
-          path: /tmp/blinkeye_screenshot.png
-          
-      - name: Print Screenshot Artifact Link
-        run: |
-          echo "Screenshot artifact uploaded!"
-          echo "You can view and download the artifact from the Actions page:"
-          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
+          screencapture -x /tmp/screenshot_debug.png  # Screenshot of app contents in debug step
 
       - name: Test App Architecture
         run: |
@@ -94,11 +83,12 @@ jobs:
           else
             echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
           fi
-
+          screencapture -x /tmp/screenshot_architecture.png  # Screenshot of architecture check
 
       - name: Uninstall Blink Eye Cask
         run: |
           brew uninstall --cask blinkeye
+          screencapture -x /tmp/screenshot_uninstall.png  # Screenshot of uninstallation process
 
       - name: Verify Uninstallation
         run: |
@@ -107,3 +97,11 @@ jobs:
           else
             echo "Blink Eye uninstallation failed!" && exit 1
           fi
+          screencapture -x /tmp/screenshot_verify_uninstall.png  # Screenshot after uninstallation
+
+      - name: Upload All Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlinkEyeScreenshots
+          path: /tmp/screenshot_*.png
+          retention-days: 7
