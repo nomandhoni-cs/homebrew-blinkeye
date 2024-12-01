@@ -1,0 +1,114 @@
+name: Screenshot Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-test:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"   # For Apple Silicon (ARM64)
+            architecture: "arm64"  # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"  # For Intel (x86_64)
+            architecture: "x86_64"   # Intel
+            args: "--target x86_64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log Device Architecture
+        run: |
+          DEVICE_ARCH=$(uname -m)
+          echo "Detected device architecture: $DEVICE_ARCH"
+          if [[ "$DEVICE_ARCH" == "arm64" ]]; then
+            echo "This is an Apple Silicon device (ARM64)."
+          elif [[ "$DEVICE_ARCH" == "x86_64" ]]; then
+            echo "This is an Intel-based device (x86_64)."
+          else
+            echo "Unknown architecture detected!"
+          fi
+
+      - name: Set up Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+          brew update
+
+      - name: Tap the Homebrew repository
+        run: |
+          brew tap nomandhoni-cs/blinkeye && brew install --cask blinkeye
+
+      - name: Install Blink Eye Cask
+        run: |
+          brew install --cask blinkeye
+          screencapture -x /tmp/screenshot_install.png  # Screenshot during installation process
+
+      - name: Verify Installation
+        run: |
+          if [ -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye installed successfully."
+          else
+            echo "Blink Eye installation failed!" && exit 1
+          fi
+          screencapture -x /tmp/screenshot_verify_install.png  # Screenshot after verification
+
+      - name: Launch Blink Eye App and Wait
+        run: |
+          open "/Applications/Blink Eye.app"
+          echo "App launched, waiting for 2 minutes..."
+          sleep 120  # Wait for 2 minutes
+
+      - name: Take Screenshot After 10 Seconds
+        run: |
+          echo "Waiting for 10 seconds before taking screenshot..."
+          sleep 10  # Wait for 10 seconds before taking screenshot
+          screencapture -x /tmp/screenshot_after_2min_10sec.png  # Screenshot after waiting
+
+      - name: Test App Architecture
+        run: |
+          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" ]; then
+            echo "Blink Eye binary not found!" && exit 1
+          fi
+          ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" | awk '{print $NF}')
+          echo "Detected architecture: $ARCH"
+          if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
+            echo "Architecture test failed! Detected: $ARCH, Expected: ${{ matrix.architecture }}" && exit 1
+          else
+            echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
+          fi
+          screencapture -x /tmp/screenshot_architecture.png  # Screenshot during architecture check
+
+      - name: Uninstall Blink Eye Cask
+        run: |
+          brew uninstall --cask blinkeye
+          screencapture -x /tmp/screenshot_uninstall.png  # Screenshot during uninstallation
+
+      - name: Verify Uninstallation
+        run: |
+          if [ ! -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye uninstalled successfully."
+          else
+            echo "Blink Eye uninstallation failed!" && exit 1
+          fi
+          screencapture -x /tmp/screenshot_verify_uninstall.png  # Screenshot after uninstallation
+
+      - name: Upload All Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlinkEyeScreenshots
+          path: /tmp/screenshot_*.png
+          retention-days: 7
