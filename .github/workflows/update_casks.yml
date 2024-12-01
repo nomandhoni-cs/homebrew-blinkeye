@@ -77,7 +77,10 @@ jobs:
           sed -i "s/^  version \".*\"/  version \"$VERSION\"/" Casks/blinkeye.rb
           sed -i "s/^  sha256 arm:   \".*\"/  sha256 arm:   \"$SHA256_ARM\"/" Casks/blinkeye.rb
           sed -i "s/^         intel: \".*\"/         intel: \"$SHA256_INTEL\"/" Casks/blinkeye.rb
-          sed -i "s|^  url .*|  url \"https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_#{arch}.app.tar.gz\",|" Casks/blinkeye.rb
+
+          # Update the URL with the correct version and architecture
+          sed -i "s|^  url .*|  url \"$URL_ARM\",|" Casks/blinkeye.rb
+          sed -i "s|^    #.*$|  # Updated automatically via GitHub Actions|g" Casks/blinkeye.rb
 
       - name: Commit and Push Changes
         env:
