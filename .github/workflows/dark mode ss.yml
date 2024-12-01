@@ -1,0 +1,62 @@
+name: Screen Shot - Dark Mode
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-test-dark-mode:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"
+            architecture: "arm64" # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            architecture: "x86_64" # Intel
+            args: "--target x86_64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+          brew update
+
+      - name: Install Blink Eye Cask
+        run: |
+          brew install --cask blinkeye
+
+      - name: Set macOS to Dark Mode
+        run: |
+          osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
+          screencapture -x /tmp/screenshot_dark_mode.png  # Screenshot in dark mode
+
+      - name: Launch Blink Eye App 5 Times with Delay in Dark Mode
+        run: |
+          for i in {1..5}; do
+            open "/Applications/Blink Eye.app"
+            sleep 5  # Wait for the app UI to render
+            screencapture -x /tmp/screenshot_launch_dark_mode_$i.png  # Take screenshot in dark mode after wait
+          done
+
+      - name: Upload Dark Mode Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlinkEyeDarkModeScreenshots
+          path: /tmp/screenshot_*.png
+          retention-days: 7
