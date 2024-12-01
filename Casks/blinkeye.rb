@@ -16,7 +16,8 @@ cask "blinkeye" do
   uninstall quit: "com.blinkeye.app"
 
   caveats <<~EOS
-    The app is not notarized. You may need to bypass macOS Gatekeeper:
+    Apple Charges developer 100$/year to Notarize their app, It's Constly for me as small Developer.
+    So I haven't notarized this App yet. You may need to bypass macOS Gatekeeper:
     - Right-click the app in Finder and select "Open" to allow it to run.
     - Alternatively, use `xattr -d com.apple.quarantine /path/to/Blink\ Eye.app` in the Terminal.
   EOS
