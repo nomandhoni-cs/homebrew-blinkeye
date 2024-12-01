@@ -1,4 +1,4 @@
-name: Screen Shot
+name: Screenshot
 
 on:
   workflow_dispatch:
@@ -16,16 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest"
-            architecture: "arm64" # Apple Silicon
+          - platform: "macos-11"   # For Apple Silicon (ARM64)
+            architecture: "arm64"  # Apple Silicon
             args: "--target aarch64-apple-darwin"
-          - platform: "macos-latest"
-            architecture: "x86_64" # Intel
+          - platform: "macos-latest"  # For Intel (x86_64)
+            architecture: "x86_64"   # Intel
             args: "--target x86_64-apple-darwin"
 
     runs-on: ${{ matrix.platform }}
-
     steps:
+      # Add the steps for building and testing here, using `args` and architecture info if needed.
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
