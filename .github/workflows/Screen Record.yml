@@ -1,0 +1,109 @@
+name: Screen Recording
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-test:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"
+            architecture: "arm64" # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"
+            architecture: "x86_64" # Intel
+            args: "--target x86_64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Homebrew and ffmpeg
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+          brew update
+          brew install ffmpeg
+
+      - name: Start Screen Recording
+        run: |
+          echo "Starting screen recording..."
+          ffmpeg -video_size 1920x1080 -framerate 30 -f avfoundation -i "1:0" -y /tmp/screen_record.mp4 &
+          echo $! > /tmp/ffmpeg_pid
+          sleep 5  # Give ffmpeg time to initialize
+
+      - name: Tap the Homebrew repository
+        run: |
+          brew tap nomandhoni-cs/blinkeye && brew install --cask blinkeye
+
+      - name: Install Blink Eye Cask
+        run: |
+          brew install --cask blinkeye
+
+      - name: Verify Installation
+        run: |
+          if [ -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye installed successfully."
+          else
+            echo "Blink Eye installation failed!" && exit 1
+          fi
+
+      - name: Launch Blink Eye App
+        run: |
+          open "/Applications/Blink Eye.app"
+          sleep 5  # Give the app time to load
+
+      - name: Test App Architecture
+        run: |
+          # Ensure the app binary exists
+          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" ]; then
+            echo "Blink Eye binary not found!" && exit 1
+          fi
+
+          # Check the architecture of the app binary
+          ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" | awk '{print $NF}')
+          echo "Detected architecture: $ARCH"
+
+          if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
+            echo "Architecture test failed! Detected: $ARCH, Expected: ${{ matrix.architecture }}" && exit 1
+          else
+            echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
+          fi
+
+      - name: Uninstall Blink Eye Cask
+        run: |
+          brew uninstall --cask blinkeye
+
+      - name: Verify Uninstallation
+        run: |
+          if [ ! -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye uninstalled successfully."
+          else
+            echo "Blink Eye uninstallation failed!" && exit 1
+          fi
+
+      - name: Stop Screen Recording
+        run: |
+          echo "Stopping screen recording..."
+          kill -INT $(cat /tmp/ffmpeg_pid)
+          sleep 2  # Give ffmpeg time to finalize the video
+
+      - name: Upload Screen Recording
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlinkEyeScreenRecording
+          path: /tmp/screen_record.mp4
+          retention-days: 7
