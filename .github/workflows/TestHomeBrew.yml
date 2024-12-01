@@ -82,18 +82,3 @@ jobs:
           else
             echo "Blink Eye uninstallation failed!" && exit 1
           fi
-
-  # Separate architecture test jobs for independent execution
-  arm64-test:
-    runs-on: macos-latest
-    if: matrix.architecture == 'arm64'
-    steps:
-      - name: Architecture-specific Test for arm64
-        run: echo "Running architecture-specific test for arm64."
-
-  x86_64-test:
-    runs-on: macos-latest
-    if: matrix.architecture == 'x86_64'
-    steps:
-      - name: Architecture-specific Test for x86_64
-        run: echo "Running architecture-specific test for x86_64."
