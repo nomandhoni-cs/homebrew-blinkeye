@@ -6,7 +6,7 @@ on:
       branch:
         description: "Branch to release"
         required: true
-        default: "release"
+        default: "main"
 
 jobs:
   build-and-test:
@@ -61,12 +61,12 @@ jobs:
       - name: Test App Architecture
         run: |
           # Ensure the app binary exists
-          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" ]; then
+          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" ]; then
             echo "Blink Eye binary not found!" && exit 1
           fi
       
           # Check the architecture of the app binary
-          ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink Eye" | awk '{print $NF}')
+          ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" | awk '{print $NF}')
           echo "Detected architecture: $ARCH"
       
           if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
@@ -74,7 +74,6 @@ jobs:
           else
             echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
           fi
-
 
 
       - name: Uninstall Blink Eye Cask
