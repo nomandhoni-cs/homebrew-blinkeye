@@ -21,11 +21,19 @@ jobs:
           echo "Release data fetched:"
           cat release.json
 
+          # Extract tag name and remove the 'v' prefix
           TAG_NAME=$(jq -r '.tag_name' release.json | sed 's/^v//')
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
+          # Extract URLs for ARM and x64 binaries
           URL_ARM=$(jq -r '.assets[] | select(.name | contains("aarch64")).browser_download_url' release.json)
           URL_INTEL=$(jq -r '.assets[] | select(.name | contains("x64")).browser_download_url' release.json)
+
+          # Validate the URLs
+          if [[ -z "$URL_ARM" || -z "$URL_INTEL" ]]; then
+            echo "Error: Unable to fetch one or both of the asset URLs."
+            exit 1
+          fi
 
           echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
           echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
@@ -36,6 +44,13 @@ jobs:
           curl -L -o BlinkEye_aarch64.tar.gz "$URL_ARM"
           curl -L -o BlinkEye_x64.tar.gz "$URL_INTEL"
 
+          # Validate downloads
+          if [[ ! -f "BlinkEye_aarch64.tar.gz" || ! -f "BlinkEye_x64.tar.gz" ]]; then
+            echo "Error: One or both files failed to download."
+            exit 1
+          fi
+
+          # Calculate SHA256
           SHA256_ARM=$(sha256sum BlinkEye_aarch64.tar.gz | awk '{print $1}')
           SHA256_INTEL=$(sha256sum BlinkEye_x64.tar.gz | awk '{print $1}')
 
