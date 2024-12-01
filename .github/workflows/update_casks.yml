@@ -17,14 +17,24 @@ jobs:
       - name: Fetch Latest JSON
         id: fetch-latest
         run: |
+          # Fetch the latest JSON file from the release
           curl -s https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json -o latest.json
-          echo "Fetched latest.json:"
+
+          # Log the content of the latest.json to verify its structure
+          echo "Fetched latest.json content:"
           cat latest.json
 
+          # Extract version and platform URLs using jq
           VERSION=$(jq -r '.version' latest.json)
           URL_ARM=$(jq -r '.platforms["darwin-aarch64"].url' latest.json)
           URL_INTEL=$(jq -r '.platforms["darwin-x86_64"].url' latest.json)
 
+          # Log the extracted values
+          echo "VERSION=$VERSION"
+          echo "URL_ARM=$URL_ARM"
+          echo "URL_INTEL=$URL_INTEL"
+
+          # Set the environment variables for use in subsequent steps
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
           echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
@@ -32,18 +42,36 @@ jobs:
       - name: Calculate SHA256 Checksums
         id: sha256
         run: |
-          # Fetch the files only if the URLs are valid
+          # Ensure the URLs are valid before attempting to download
+          if [ -z "$URL_ARM" ] || [ -z "$URL_INTEL" ]; then
+            echo "Error: One or more URLs are empty."
+            exit 1
+          fi
+
+          # Log URLs before downloading
+          echo "Downloading files from:"
+          echo "ARM URL: $URL_ARM"
+          echo "Intel URL: $URL_INTEL"
+
+          # Download the platform files
           curl -L -o BlinkEye_aarch64.tar.gz "$URL_ARM"
           curl -L -o BlinkEye_x64.tar.gz "$URL_INTEL"
 
+          # Calculate SHA256 checksums
           SHA256_ARM=$(sha256sum BlinkEye_aarch64.tar.gz | awk '{print $1}')
           SHA256_INTEL=$(sha256sum BlinkEye_x64.tar.gz | awk '{print $1}')
 
+          # Log the calculated checksums
+          echo "SHA256_ARM=$SHA256_ARM"
+          echo "SHA256_INTEL=$SHA256_INTEL"
+
+          # Save the checksums as environment variables
           echo "SHA256_ARM=$SHA256_ARM" >> $GITHUB_ENV
           echo "SHA256_INTEL=$SHA256_INTEL" >> $GITHUB_ENV
 
       - name: Update Cask File
         run: |
+          # Update the Cask file with the new version and checksum values
           sed -i "s/^  version \".*\"/  version \"$VERSION\"/" Casks/blinkeye.rb
           sed -i "s/^  sha256 arm:   \".*\"/  sha256 arm:   \"$SHA256_ARM\"/" Casks/blinkeye.rb
           sed -i "s/^         intel: \".*\"/         intel: \"$SHA256_INTEL\"/" Casks/blinkeye.rb
@@ -53,6 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Commit and push the updated Cask file
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
