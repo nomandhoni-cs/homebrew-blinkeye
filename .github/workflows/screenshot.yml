@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-11"   # For Apple Silicon (ARM64)
+          - platform: "macos-latest"   # For Apple Silicon (ARM64)
             architecture: "arm64"  # Apple Silicon
             args: "--target aarch64-apple-darwin"
           - platform: "macos-latest"  # For Intel (x86_64)
@@ -37,6 +37,11 @@ jobs:
           echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
           eval "$(/opt/homebrew/bin/brew shellenv)"
           brew update
+
+      - name: Log Device Architecture
+        run: |
+          DEVICE_ARCH=$(uname -m)
+          echo "Detected device architecture: $DEVICE_ARCH"
 
       - name: Tap the Homebrew repository
         run: |
@@ -73,7 +78,7 @@ jobs:
           echo "Detected architecture: $ARCH"
           if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
             echo "Architecture test failed! Detected: $ARCH, Expected: ${{ matrix.architecture }}" && exit 1
-          else
+          else:
             echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
           fi
           screencapture -x /tmp/screenshot_architecture.png  # Screenshot during architecture check
@@ -98,4 +103,3 @@ jobs:
           name: BlinkEyeScreenshots
           path: /tmp/screenshot_*.png
           retention-days: 7
-
