@@ -1,0 +1,123 @@
+name: Screenshot even if any task failed
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to release"
+        required: true
+        default: "main"
+
+jobs:
+  build-and-test:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest"   # For Apple Silicon (ARM64)
+            architecture: "arm64"  # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest"  # For Intel (x86_64)
+            architecture: "x86_64"   # Intel
+            args: "--target x86_64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        continue-on-error: true
+
+      - name: Log Device Architecture
+        run: |
+          DEVICE_ARCH=$(uname -m)
+          echo "Detected device architecture: $DEVICE_ARCH"
+          if [[ "$DEVICE_ARCH" == "arm64" ]]; then
+            echo "This is an Apple Silicon device (ARM64)."
+          elif [[ "$DEVICE_ARCH" == "x86_64" ]]; then
+            echo "This is an Intel-based device (x86_64)."
+          else
+            echo "Unknown architecture detected!"
+          fi
+        continue-on-error: true
+
+      - name: Set up Homebrew
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+          echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.bash_profile"
+          eval "$(/opt/homebrew/bin/brew shellenv)" || true
+          brew update || true
+        continue-on-error: true
+
+      - name: Tap the Homebrew repository
+        run: |
+          brew tap nomandhoni-cs/blinkeye || true
+          brew install --cask blinkeye || true
+        continue-on-error: true
+
+      - name: Install Blink Eye Cask
+        run: |
+          brew install --cask blinkeye || true
+          screencapture -x /tmp/screenshot_install.png || true  # Screenshot during installation process
+        continue-on-error: true
+
+      - name: Verify Installation
+        run: |
+          if [ -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye installed successfully."
+          else
+            echo "Blink Eye installation failed, but continuing workflow."
+          fi
+          screencapture -x /tmp/screenshot_verify_install.png || true  # Screenshot after verification
+        continue-on-error: true
+
+      - name: Launch Blink Eye App 5 Times with Delay
+        run: |
+          for i in {1..5}; do
+            open "/Applications/Blink Eye.app" || true
+            sleep 5  # Wait for the app UI to render
+            screencapture -x "/tmp/screenshot_launch_$i.png" || true  # Take screenshot after wait
+          done
+        continue-on-error: true
+
+      - name: Test App Architecture
+        run: |
+          if [ ! -f "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" ]; then
+            echo "Blink Eye binary not found, but continuing workflow."
+          else
+            ARCH=$(file "/Applications/Blink Eye.app/Contents/MacOS/Blink-Eye" | awk '{print $NF}')
+            echo "Detected architecture: $ARCH"
+            if [ "$ARCH" != "${{ matrix.architecture }}" ]; then
+              echo "Architecture test failed! Detected: $ARCH, Expected: ${{ matrix.architecture }}, but continuing workflow."
+            else
+              echo "Architecture test passed! Detected: $ARCH matches ${{ matrix.architecture }}"
+            fi
+          fi
+          screencapture -x /tmp/screenshot_architecture.png || true  # Screenshot during architecture check
+        continue-on-error: true
+
+      - name: Uninstall Blink Eye Cask
+        run: |
+          brew uninstall --cask blinkeye || true
+          screencapture -x /tmp/screenshot_uninstall.png || true  # Screenshot during uninstallation
+        continue-on-error: true
+
+      - name: Verify Uninstallation
+        run: |
+          if [ ! -d "/Applications/Blink Eye.app" ]; then
+            echo "Blink Eye uninstalled successfully."
+          else
+            echo "Blink Eye uninstallation failed, but continuing workflow."
+          fi
+          screencapture -x /tmp/screenshot_verify_uninstall.png || true  # Screenshot after uninstallation
+        continue-on-error: true
+
+      - name: Upload All Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlinkEyeScreenshots
+          path: /tmp/screenshot_*.png
+          retention-days: 7
+        continue-on-error: true
