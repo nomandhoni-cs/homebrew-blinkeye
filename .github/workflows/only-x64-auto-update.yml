@@ -2,10 +2,6 @@ name: Update Blink Eye Cask - Only x64
 
 on:
   workflow_dispatch:  # Allows manual triggering
-    inputs:
-      version:
-        description: 'Version to update (e.g., 2.3.1)'
-        required: true
 
 jobs:
   update-cask:
@@ -20,11 +16,9 @@ jobs:
 
       - name: Fetch Latest Release Information
         id: fetch-release
-        env:
-          VERSION: ${{ github.event.inputs.version }}
         run: |
-          # Fetch the release JSON for the specified version
-          wget -q "https://github.com/nomandhoni-cs/blink-eye/releases/download/v${VERSION}/latest.json" -O latest.json
+          # Fetch the latest release JSON
+          wget -q https://github.com/nomandhoni-cs/blink-eye/releases/latest/download/latest.json -O latest.json
 
           # Check if the file is downloaded correctly
           if [ ! -s latest.json ]; then
@@ -32,10 +26,15 @@ jobs:
             exit 1
           fi
 
-          # Extract Intel URL using jq
+          # Extract version and Intel URL using jq
+          VERSION=$(jq -r '.version' latest.json)
           URL_INTEL=$(jq -r '.platforms["darwin-x86_64"].url' latest.json)
 
-          # Check if the extracted value is empty
+          # Check if the extracted values are empty
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version not found"
+            exit 1
+          fi
           if [ -z "$URL_INTEL" ]; then
             echo "Error: Intel URL not found"
             exit 1
