@@ -77,7 +77,7 @@ jobs:
         run: |
           for i in {1..5}; do
             open "/Applications/Blink Eye.app" || true
-            sleep 5  # Wait for the app UI to render
+            sleep 10  # Wait for the app UI to render
             screencapture -x "/tmp/screenshot_launch_$i.png" || true  # Take screenshot after wait
           done
         continue-on-error: true
