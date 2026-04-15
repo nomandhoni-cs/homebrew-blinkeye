@@ -1,8 +1,9 @@
 cask "blinkeye" do
-  version "2.7.5"
-  sha256 "8b58ad024851deb062397c22c2f61445218ff9bc226b6eb50fd90e6671dce24d"
+  version "2.7.6"
+  sha256 "0151f3855bef0383df140157b0d55fa81b1bfbcf183a59c04f5278186c1d84b8"
 
   url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz",
+      verified: "github.com/nomandhoni-cs/blink-eye/",
       verified: "github.com/nomandhoni-cs/blink-eye/",
       verified: "github.com/nomandhoni-cs/blink-eye/",
       verified: "github.com/nomandhoni-cs/blink-eye/",
