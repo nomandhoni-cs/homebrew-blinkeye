@@ -38,9 +38,7 @@ cask "blinkeye" do
 
     2. Via Terminal:
       - Run the following command to remove the Gatekeeper quarantine attribute:
-        ```
         xattr -d com.apple.quarantine /path/to/Blink\ Eye.app
-        ```
 
     Your understanding and support for independent developers like me are greatly appreciated! 💡
   EOS
