@@ -1,9 +1,18 @@
 cask "blinkeye" do
   version "2.7.6"
-  sha256 "0151f3855bef0383df140157b0d55fa81b1bfbcf183a59c04f5278186c1d84b8"
 
-  url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz",
-      verified: "github.com/nomandhoni-cs/blink-eye/"
+  on_intel do
+    sha256 "0151f3855bef0383df140157b0d55fa81b1bfbcf183a59c04f5278186c1d84b8"
+    url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz",
+        verified: "github.com/nomandhoni-cs/blink-eye/"
+  end
+
+  on_arm do
+    sha256 "e24df24497210fb400863829edaa7be790346eca3958e594893a553463f55df5"
+    url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_aarch64.app.tar.gz",
+        verified: "github.com/nomandhoni-cs/blink-eye/"
+  end
+
   name "Blink Eye"
   desc "Blink Eye - Best Eye Care & Break Timer for Mac, Windows, Linux"
   homepage "https://blinkeye.app/"
