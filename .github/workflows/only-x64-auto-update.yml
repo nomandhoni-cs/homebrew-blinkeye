@@ -60,7 +60,6 @@ jobs:
           # Update the cask file with new version and checksum
           sed -i "s/^  version \".*\"/  version \"$VERSION\"/" Casks/blinkeye.rb
           sed -i "s/^  sha256 \".*\"/  sha256 \"$SHA256_INTEL\"/" Casks/blinkeye.rb
-          sed -i "s|^  url \".*\"|  url \"https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz\",\n      verified: \"github.com/nomandhoni-cs/blink-eye/\"|" Casks/blinkeye.rb
 
       - name: Commit and Push Changes
         env:
