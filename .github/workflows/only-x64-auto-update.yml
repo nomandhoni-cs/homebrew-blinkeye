@@ -68,56 +68,54 @@ jobs:
       - name: Update Cask File
         run: |
           # Create the new cask content with both architectures
-          cat > Casks/blinkeye.rb << 'EOF'
-cask "blinkeye" do
-  version "$VERSION"
+          cat > Casks/blinkeye.rb << 'CASKFILE'
+          cask "blinkeye" do
+            version "$VERSION"
 
-  on_intel do
-    sha256 "$SHA256_INTEL"
-    url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz",
-        verified: "github.com/nomandhoni-cs/blink-eye/"
-  end
+            on_intel do
+              sha256 "$SHA256_INTEL"
+              url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_x64.app.tar.gz",
+                  verified: "github.com/nomandhoni-cs/blink-eye/"
+            end
 
-  on_arm do
-    sha256 "$SHA256_ARM"
-    url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_aarch64.app.tar.gz",
-        verified: "github.com/nomandhoni-cs/blink-eye/"
-  end
+            on_arm do
+              sha256 "$SHA256_ARM"
+              url "https://github.com/nomandhoni-cs/blink-eye/releases/download/v#{version}/Blink.Eye_aarch64.app.tar.gz",
+                  verified: "github.com/nomandhoni-cs/blink-eye/"
+            end
 
-  name "Blink Eye"
-  desc "Blink Eye - Best Eye Care & Break Timer for Mac, Windows, Linux"
-  homepage "https://blinkeye.app/"
+            name "Blink Eye"
+            desc "Blink Eye - Best Eye Care & Break Timer for Mac, Windows, Linux"
+            homepage "https://blinkeye.app/"
 
-  auto_updates true
+            auto_updates true
 
-  app "Blink Eye.app"
+            app "Blink Eye.app"
 
-  uninstall quit: "com.blinkeye.app"
+            uninstall quit: "com.blinkeye.app"
 
-  caveats <<~EOS
-    IMPORTANT NOTICE:
+            caveats <<~EOS
+              IMPORTANT NOTICE:
 
-    Apple requires developers to pay $100/year for app notarization. 
-    
-    As a small developer, this cost is significant, so this app has not been notarized.
+              Apple requires developers to pay $100/year for app notarization. 
+              
+              As a small developer, this cost is significant, so this app has not been notarized.
 
-    As a result, macOS Gatekeeper might block the app. You can bypass this restriction using one of the following methods:
+              As a result, macOS Gatekeeper might block the app. You can bypass this restriction using one of the following methods:
 
-    1. Via Finder:
-      - Right-click the app in Finder.
-      - Select "Open" to allow it to run.
+              1. Via Finder:
+                - Right-click the app in Finder.
+                - Select "Open" to allow it to run.
 
-    2. Via Terminal:
-      - Run the following command to remove the Gatekeeper quarantine attribute:
-        ```
-        xattr -d com.apple.quarantine /path/to/Blink\ Eye.app
-        ```
+              2. Via Terminal:
+                - Run the following command to remove the Gatekeeper quarantine attribute:
+                  xattr -d com.apple.quarantine /path/to/Blink\ Eye.app
 
-    Your understanding and support for independent developers like me are greatly appreciated! 💡
-  EOS
+              Your understanding and support for independent developers like me are greatly appreciated! 💡
+            EOS
 
-end
-EOF
+          end
+          CASKFILE
           
           # Replace the placeholder variables with actual values
           sed -i "s/\$VERSION/$VERSION/g" Casks/blinkeye.rb
